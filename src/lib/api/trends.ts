@@ -34,11 +34,11 @@ export async function getKeywordTrends(country: Country, category: Category): Pr
     let growth = (Math.cos(index) * 30);
 
     // Hero products overrides
-    if (keyword === 'PDRN serum' && country === 'KR') { score = 95; growth = 120; }
-    if (keyword === 'lip gloss' && country === 'US') { score = 88; growth = 45; }
-    if (keyword === 'cushion foundation' && country === 'JP') { score = 92; growth = 60; }
-    if (keyword === 'color balm' && country === 'KR') { score = 85; growth = 80; }
-    if (keyword === 'skin barrier' && country === 'US') { score = 75; growth = 25; }
+    if (keyword === 'PDRN 세럼' && country === 'KR') { score = 95; growth = 120; }
+    if (keyword === '립글로스' && country === 'US') { score = 88; growth = 45; }
+    if (keyword === '쿠션 파운데이션' && country === 'JP') { score = 92; growth = 60; }
+    if (keyword === '컬러 밤' && country === 'KR') { score = 85; growth = 80; }
+    if (keyword === '피부 장벽' && country === 'US') { score = 75; growth = 25; }
 
     return {
       keyword,
@@ -47,4 +47,57 @@ export async function getKeywordTrends(country: Country, category: Category): Pr
       growth: Math.round(growth),
     };
   });
+}
+
+import { MappedInsight, FxRate, InternalSales } from '@/types';
+import { getFxRates } from './fx';
+import { getInternalSales } from './sales';
+
+export async function getMappedInsights(): Promise<MappedInsight[]> {
+  const countries: Country[] = ['KR', 'US', 'JP'];
+  const categories: Category[] = ['스킨케어', '메이크업'];
+
+  const [fxRates, ...allKeywordTrends] = await Promise.all([
+    getFxRates(),
+    ...countries.flatMap(country =>
+      categories.map(category => getKeywordTrends(country, category))
+    )
+  ]);
+
+  const allSales = await Promise.all(countries.map(country => getInternalSales(country)));
+  const flatSales = allSales.flat();
+  const flatTrends = allKeywordTrends.flat();
+
+  const insights: MappedInsight[] = [];
+
+  countries.forEach(country => {
+    const fx = fxRates.find(f => f.currency === (country === 'KR' ? 'KRW' : country === 'JP' ? 'JPY' : 'USD'));
+    const fxFavorability = fx ? (fx.trend === 'up' ? 20 : fx.trend === 'down' ? -20 : 0) : 0;
+
+    categories.forEach(category => {
+      KEYWORDS[category].forEach(keyword => {
+        const trend = flatTrends.find(t => t.keyword === keyword && t.category === category);
+        const sale = flatSales.find(s => s.keyword === keyword && s.country === country);
+
+        if (trend && sale) {
+          // Opportunity Score Formula: (Growth * 0.4) + (Score * 0.3) + (FX * 0.2) + (Inventory_Low ? 10 : 0)
+          const inventoryBonus = sale.inventoryLevel === 'low' ? 10 : 0;
+          const oppScore = (trend.growth * 0.4) + (trend.score * 0.3) + fxFavorability + inventoryBonus;
+
+          insights.push({
+            keyword,
+            category,
+            country,
+            trendScore: trend.score,
+            growth: trend.growth,
+            fxAdjustedRevenue: sale.revenue, // already in USD
+            inventoryLevel: sale.inventoryLevel,
+            opportunityScore: Math.round(oppScore)
+          });
+        }
+      });
+    });
+  });
+
+  return insights;
 }

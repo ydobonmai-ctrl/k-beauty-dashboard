@@ -10,9 +10,9 @@ interface TrendChartProps {
 
 export function TrendChart({ data, title }: TrendChartProps) {
   return (
-    <div className="w-full h-full min-h-[300px] flex flex-col">
-      {title && <h3 className="text-base font-semibold mb-4 text-neutral-200">{title}</h3>}
-      <div className="flex-1 w-full relative">
+    <div className="w-full h-[350px] flex flex-col">
+      {title && <h3 className="text-xl font-black tracking-tighter text-neutral-800 mb-6">{title}</h3>}
+      <div className="flex-1 w-full relative min-h-0">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
@@ -25,38 +25,40 @@ export function TrendChart({ data, title }: TrendChartProps) {
                 <stop offset="95%" stopColor="#ec4899" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#262626" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
             <XAxis
               dataKey="date"
-              stroke="#525252"
-              fontSize={12}
-              tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+              stroke="#a3a3a3"
+              fontSize={11}
+              fontWeight={600}
+              tickFormatter={(value) => new Date(value).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
               minTickGap={30}
+              dy={10}
             />
-            <YAxis stroke="#525252" fontSize={12} />
+            <YAxis stroke="#a3a3a3" fontSize={11} fontWeight={600} />
             <Tooltip
-              contentStyle={{ backgroundColor: '#171717', borderColor: '#262626', borderRadius: '8px', color: '#fff' }}
-              itemStyle={{ color: '#e5e5e5' }}
-              labelStyle={{ color: '#a3a3a3', marginBottom: '8px' }}
+              contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #f0f0f0', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              itemStyle={{ color: '#404040', fontSize: '12px', fontWeight: 'bold' }}
+              labelStyle={{ color: '#171717', marginBottom: '4px', fontWeight: 'black', fontSize: '14px' }}
             />
-            <Legend wrapperStyle={{ paddingTop: '10px' }} />
+            <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ paddingBottom: '20px', fontSize: '12px', fontWeight: 'bold' }} />
             <Area
               type="monotone"
               dataKey="skincare"
-              name="Skincare"
+              name="스킨케어"
               stroke="#d946ef"
               fillOpacity={1}
               fill="url(#colorSkincare)"
-              strokeWidth={2}
+              strokeWidth={3}
             />
             <Area
               type="monotone"
               dataKey="makeup"
-              name="Makeup"
+              name="메이크업"
               stroke="#ec4899"
               fillOpacity={1}
               fill="url(#colorMakeup)"
-              strokeWidth={2}
+              strokeWidth={3}
             />
           </AreaChart>
         </ResponsiveContainer>

@@ -16,8 +16,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.className} bg-black text-white min-h-screen antialiased`}>
+    <html lang="ko">
+      <body className={`${inter.className} bg-neutral-50 text-neutral-900 min-h-screen antialiased`}>
         <DashboardLayout>{children}</DashboardLayout>
       </body>
     </html>

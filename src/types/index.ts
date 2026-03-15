@@ -1,22 +1,22 @@
 export type Country = 'KR' | 'US' | 'JP';
-export type Category = 'Skincare' | 'Makeup';
+export type Category = '스킨케어' | '메이크업';
 
 export const KEYWORDS: Record<Category, string[]> = {
-  Skincare: [
-    'cleansing balm',
-    'sunscreen',
-    'moisturizer',
-    'soothing cream',
-    'skin barrier',
-    'PDRN serum',
+  '스킨케어': [
+    '클렌징 밤',
+    '자외선 차단제',
+    '수분 크림',
+    '진정 크림',
+    '피부 장벽',
+    'PDRN 세럼',
   ],
-  Makeup: [
-    'lip gloss',
-    'lip tint',
-    'cushion foundation',
-    'glass lips',
-    'blush',
-    'color balm',
+  '메이크업': [
+    '립글로스',
+    '립틴트',
+    '쿠션 파운데이션',
+    '글래스 립',
+    '블러셔',
+    '컬러 밤',
   ],
 };
 
@@ -37,7 +37,7 @@ export interface FxRate {
   currency: 'KRW' | 'JPY' | 'USD';
   rate: number; // Base USD
   trend: 'up' | 'down' | 'stable';
-  volatility: number; 
+  volatility: number;
 }
 
 export interface InternalSales {
