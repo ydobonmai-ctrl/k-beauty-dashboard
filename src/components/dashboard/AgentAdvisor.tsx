@@ -130,11 +130,6 @@ export function AgentAdvisor({ insights }: AgentAdvisorProps) {
         })}
       </div>
 
-      <div className="p-4 bg-zinc-50 dark:bg-zinc-800/30 border-t border-zinc-100 dark:border-zinc-800">
-        <button className="w-full py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm font-bold hover:opacity-90 transition-opacity">
-          Generate Full Strategic Report
-        </button>
-      </div>
     </div>
   );
 }
