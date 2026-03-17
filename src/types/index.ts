@@ -48,6 +48,12 @@ export interface InternalSales {
   inventoryLevel: 'low' | 'medium' | 'high';
 }
 
+export interface AgentInsight {
+  rationale: string;
+  recommendation: string;
+  confidence: number;
+}
+
 export interface MappedInsight {
   keyword: string;
   category: Category;
@@ -57,6 +63,7 @@ export interface MappedInsight {
   fxAdjustedRevenue: number; // Revenue mapped against FX rate
   inventoryLevel: 'low' | 'medium' | 'high';
   opportunityScore: number; // Computed metric based on rising demand + FX + sales
+  agentInsight?: AgentInsight;
 }
 
 export interface Alert {

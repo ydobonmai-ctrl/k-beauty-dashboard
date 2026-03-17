@@ -52,6 +52,7 @@ export async function getKeywordTrends(country: Country, category: Category): Pr
 import { MappedInsight, FxRate, InternalSales } from '@/types';
 import { getFxRates } from './fx';
 import { getInternalSales } from './sales';
+import { getAgentAnalysis } from './agent';
 
 export async function getMappedInsights(): Promise<MappedInsight[]> {
   const countries: Country[] = ['KR', 'US', 'JP'];
@@ -99,5 +100,10 @@ export async function getMappedInsights(): Promise<MappedInsight[]> {
     });
   });
 
-  return insights;
+  const mappedInsights = await Promise.all(insights.map(async (insight) => {
+    const agentInsight = await getAgentAnalysis(insight);
+    return { ...insight, agentInsight };
+  }));
+
+  return mappedInsights;
 }

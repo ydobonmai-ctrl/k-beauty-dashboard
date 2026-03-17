@@ -5,6 +5,7 @@ import { AlertCard } from '@/components/dashboard/AlertCard';
 import { TrendChart } from '@/components/charts/TrendChart';
 import { ExecutiveSummary } from '@/components/dashboard/ExecutiveSummary';
 import { OpportunityMatrix } from '@/components/charts/OpportunityMatrix';
+import { AgentAdvisor } from '@/components/dashboard/AgentAdvisor';
 import { Alert } from '@/types';
 
 export default async function DashboardOverview() {
@@ -88,17 +89,21 @@ export default async function DashboardOverview() {
           <OpportunityMatrix insights={insights} />
         </div>
 
-        <div className="bg-white border border-neutral-200 rounded-3xl p-8 shadow-sm flex flex-col h-full">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-xl font-black tracking-tighter text-neutral-800">지능형 인텔리전스 알림</h3>
-            <span className="bg-rose-50 text-rose-600 text-[11px] font-black px-3 py-1 rounded-full border border-rose-100 uppercase tracking-wider">
-              3개 신규
-            </span>
-          </div>
-          <div className="flex-1 space-y-6 overflow-y-auto pr-2">
-            {alerts.map(alert => (
-              <AlertCard key={alert.id} alert={alert} />
-            ))}
+        <div className="flex flex-col h-full gap-6">
+          <AgentAdvisor insights={insights} />
+
+          <div className="bg-white border border-neutral-200 rounded-3xl p-8 shadow-sm flex flex-col flex-1">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-xl font-black tracking-tighter text-neutral-800">긴급 이슈</h3>
+              <span className="bg-rose-50 text-rose-600 text-[11px] font-black px-3 py-1 rounded-full border border-rose-100 uppercase tracking-wider">
+                2개 처리 필요
+              </span>
+            </div>
+            <div className="flex-1 space-y-6 overflow-y-auto pr-2">
+              {alerts.filter(a => a.severity === 'high').map(alert => (
+                <AlertCard key={alert.id} alert={alert} />
+              ))}
+            </div>
           </div>
         </div>
       </div>
