@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 💄 K-Beauty Demand Intelligence Dashboard (AI-Powered)
 
-## Getting Started
+> **"비즈니스 문제를 기술적 파이프라인으로 해결하는 Product Engineer 프로젝트"**
 
-First, run the development server:
+본 프로젝트는 단순한 데이터 시각화를 넘어, 외부 시장 트렌드와 내부 매출 데이터를 결합하고 **LLM 에이전트**를 통해 경영진에게 **실행 가능한 전략(Actionable Insights)**을 제안하는 지능형 대시보드입니다.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Key Product Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 1. AI 에이전트 기반 전략 제안 (AI-Driven Rationale)
+- 단순히 '수치'를 보여주는 것이 아니라, AI가 해당 지표의 의미를 해석하여 **'왜 이 키워드에 집중해야 하는지'** 전략적 근거를 제시합니다.
+- 점수 산출 공식의 투명성을 위해 상세 페이지 내 **Opportunity Score 툴팁**을 제공합니다.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 2. 맥락 기반 상세 분석 (Context-Aware Deep Analysis)
+- `[국가]/[카테고리/키워드]` 기반의 **동적 라우팅(Dynamic Routing)**을 통해 제품별 맞춤형 분석 페이지를 제공합니다.
+- 각 페이지는 해당 시장의 특수성(환율, 재고 등)을 반영한 개별 액션 아이템을 생성합니다.
 
-## Learn More
+### 3. 기술적 피드백 루프 (Iterative Improvement)
+- AI가 제안한 조언에 대해 사용자가 'Helpful / Not Helpful' 피드백을 남길 수 있는 인터페이스를 구현했습니다. 
+- 이는 현장의 피드백을 수집하여 AI 모델과 로직을 점진적으로 개선하는 **제품 엔지니어링의 핵심 사이클**을 반영합니다.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🏛 Technical Architecture
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+본 시스템은 확장성과 유지보수성을 고려하여 4개의 계층으로 설계되었습니다:
 
-## Deploy on Vercel
+1.  **Data Layer**: Google Search Trends(외부) + 매출/재고 ERP 데이터(내부) + 실시간 환율 API 연동
+2.  **Logic Layer**: 가중치 기반의 기회 지수(Opportunity Score) 산출 알고리즘 적용
+3.  **Agent Layer**: LLM(추론 엔진) 기반의 전략적 근거 및 액션 아이템 생성
+4.  **Presentation Layer**: Next.js 15(App Router) 기반의 고성능 반응형 UI
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🛠 Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Deployment**: Vercel (CI/CD 통합)
+- **Architecture Tools**: Git history rewriting for unified authorship, Dynamic Contextual Routing
+

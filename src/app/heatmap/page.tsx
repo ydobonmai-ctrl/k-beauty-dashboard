@@ -9,12 +9,18 @@ export default async function HeatmapPage({
 }) {
   const { country: selectedCountry } = await searchParams;
 
-  const allData = await Promise.all([
-    { country: 'KR', category: '스킨케어', data: await getKeywordTrends('KR', '스킨케어') },
-    { country: 'KR', category: '메이크업', data: await getKeywordTrends('KR', '메이크업') },
-    { country: 'US', category: '스킨케어', data: await getKeywordTrends('US', '스킨케어') },
-    { country: 'JP', category: '메이크업', data: await getKeywordTrends('JP', '메이크업') },
-  ]);
+  const countries: ('KR' | 'US' | 'JP')[] = ['KR', 'US', 'JP'];
+  const categories: ('스킨케어' | '메이크업')[] = ['스킨케어', '메이크업'];
+
+  const allDataPromises = countries.flatMap(country =>
+    categories.map(async (category) => ({
+      country,
+      category,
+      data: await getKeywordTrends(country, category)
+    }))
+  );
+
+  const allData = await Promise.all(allDataPromises);
 
   const filteredData = selectedCountry && selectedCountry !== '전체'
     ? allData.filter(d => d.country === selectedCountry)

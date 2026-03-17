@@ -10,7 +10,7 @@ interface AgentAdvisorProps {
 }
 
 export function AgentAdvisor({ insights }: AgentAdvisorProps) {
-  const [feedbackGiven, setFeedbackGiven] = useState<Record<string, boolean>>({});
+  const [feedbackGiven, setFeedbackGiven] = useState<Record<string, 'helpful' | 'unhelpful' | null>>({});
 
   // Get top 3 opportunities by score
   const topOpportunities = [...insights]
@@ -19,7 +19,7 @@ export function AgentAdvisor({ insights }: AgentAdvisorProps) {
 
   const handleFeedback = async (id: string, type: 'helpful' | 'unhelpful') => {
     await submitAgentFeedback(id, type);
-    setFeedbackGiven(prev => ({ ...prev, [id]: true }));
+    setFeedbackGiven(prev => ({ ...prev, [id]: type }));
   };
 
   return (
@@ -40,77 +40,94 @@ export function AgentAdvisor({ insights }: AgentAdvisorProps) {
       </div>
 
       <div className="p-6 space-y-6">
-        {topOpportunities.map((insight, idx) => (
-          <div key={`${insight.keyword}-${insight.country}`} className="relative group">
-            <div className="flex items-start gap-4">
-              <div className="mt-1 flex-shrink-0 w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-sm font-bold text-zinc-500">
-                {idx + 1}
-              </div>
-              <div className="flex-1 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{insight.keyword}</span>
-                    <span className="text-xs px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-zinc-600 dark:text-zinc-400">
-                      {insight.country}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
-                    <TrendingUp size={14} />
-                    <span className="text-sm">Score: {insight.opportunityScore}</span>
-                  </div>
+        {topOpportunities.map((insight, idx) => {
+          const feedbackId = `${insight.keyword}-${insight.country}`;
+          const currentFeedback = feedbackGiven[feedbackId];
+
+          return (
+            <div key={feedbackId} className="relative group">
+              <div className="flex items-start gap-4">
+                <div className="mt-1 flex-shrink-0 w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-sm font-bold text-zinc-500">
+                  {idx + 1}
                 </div>
-
-                {insight.agentInsight && (
-                  <div className="bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100/50 dark:border-indigo-900/20 p-4 rounded-xl space-y-2">
-                    <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 text-xs font-bold uppercase tracking-tight">
-                      <Sparkles size={12} />
-                      AI Rationale
-                    </div>
-                    <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed font-medium">
-                      {insight.agentInsight.rationale}
-                    </p>
-                    <div className="pt-2 border-t border-indigo-100/50 dark:border-indigo-900/20">
-                      <p className="text-xs text-indigo-600 dark:text-indigo-500 italic">
-                        <span className="font-bold">Recommendation:</span> {insight.agentInsight.recommendation}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between pt-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-zinc-400 uppercase">Confidence: {insight.agentInsight?.confidence}%</span>
-                  </div>
-
-                  {!feedbackGiven[`${insight.keyword}-${insight.country}`] ? (
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-zinc-400">Feedback?</span>
-                      <button
-                        onClick={() => handleFeedback(`${insight.keyword}-${insight.country}`, 'helpful')}
-                        className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors text-zinc-400 hover:text-emerald-500"
-                      >
-                        <ThumbsUp size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleFeedback(`${insight.keyword}-${insight.country}`, 'unhelpful')}
-                        className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors text-zinc-400 hover:text-rose-500"
-                      >
-                        <ThumbsDown size={14} />
-                      </button>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">{insight.keyword}</span>
+                      <span className="text-xs px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-zinc-600 dark:text-zinc-400">
+                        {insight.country}
+                      </span>
                     </div>
-                  ) : (
-                    <span className="text-[10px] text-emerald-500 font-bold flex items-center gap-1">
-                      <ThumbsUp size={10} /> Feedback Recorded
-                    </span>
+                    <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
+                      <TrendingUp size={14} />
+                      <span className="text-sm">Score: {insight.opportunityScore}</span>
+                    </div>
+                  </div>
+
+                  {insight.agentInsight && (
+                    <div className="bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100/50 dark:border-indigo-900/20 p-4 rounded-xl space-y-2">
+                      <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 text-xs font-bold uppercase tracking-tight">
+                        <Sparkles size={12} />
+                        AI Rationale
+                      </div>
+                      <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed font-medium">
+                        {insight.agentInsight.rationale}
+                      </p>
+                      <div className="pt-2 border-t border-indigo-100/50 dark:border-indigo-900/20">
+                        <p className="text-xs text-indigo-600 dark:text-indigo-500 italic">
+                          <span className="font-bold">Recommendation:</span> {insight.agentInsight.recommendation}
+                        </p>
+                      </div>
+                    </div>
                   )}
+
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-zinc-400 uppercase">Confidence: {insight.agentInsight?.confidence}%</span>
+                    </div>
+
+                    {!currentFeedback ? (
+                      <div className="flex items-center gap-2 border-l border-zinc-100 dark:border-zinc-800 pl-3">
+                        <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-tighter">Feedback?</span>
+                        <button
+                          onClick={() => handleFeedback(feedbackId, 'helpful')}
+                          className="p-1 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded transition-colors text-zinc-400 hover:text-emerald-500"
+                          title="Helpful"
+                        >
+                          <ThumbsUp size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleFeedback(feedbackId, 'unhelpful')}
+                          className="p-1 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-colors text-zinc-400 hover:text-rose-500"
+                          title="Unhelpful"
+                        >
+                          <ThumbsDown size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 py-1 px-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                        {currentFeedback === 'helpful' ? (
+                          <>
+                            <ThumbsUp size={12} className="text-emerald-500" />
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-black uppercase tracking-tight">Helpful Recognized</span>
+                          </>
+                        ) : (
+                          <>
+                            <ThumbsDown size={12} className="text-rose-500" />
+                            <span className="text-[10px] text-rose-600 dark:text-rose-400 font-black uppercase tracking-tight">Feedback Recorded</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
+              {idx !== topOpportunities.length - 1 && (
+                <div className="absolute -bottom-3 left-4 right-0 h-px bg-zinc-100 dark:bg-zinc-800" />
+              )}
             </div>
-            {idx !== topOpportunities.length - 1 && (
-              <div className="absolute -bottom-3 left-4 right-0 h-px bg-zinc-100 dark:bg-zinc-800" />
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="p-4 bg-zinc-50 dark:bg-zinc-800/30 border-t border-zinc-100 dark:border-zinc-800">
