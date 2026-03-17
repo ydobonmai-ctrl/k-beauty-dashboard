@@ -107,3 +107,12 @@ export async function getMappedInsights(): Promise<MappedInsight[]> {
 
   return mappedInsights;
 }
+
+export async function getInsightByContext(country: Country, category: Category, keyword: string): Promise<MappedInsight | undefined> {
+  const allInsights = await getMappedInsights();
+  return allInsights.find(i =>
+    i.country === country &&
+    i.category === category &&
+    i.keyword === keyword
+  );
+}

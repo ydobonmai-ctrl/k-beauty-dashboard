@@ -32,7 +32,7 @@ export function ExecutiveSummary({ insights }: ExecutiveSummaryProps) {
           {topInsights.map((insight, idx) => (
             <Link
               key={idx}
-              href="/trends"
+              href={`/analysis/${insight.country}/${insight.category}/${insight.keyword}`}
               className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6 hover:bg-white/20 transition-all duration-300 cursor-pointer block group/card"
             >
               <div className="flex items-center justify-between mb-3">

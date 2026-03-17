@@ -12,7 +12,7 @@ export function Heatmap({ data, country, category }: HeatmapProps) {
   return (
     <div className="w-full bg-white rounded-2xl border border-neutral-200 p-8 shadow-sm">
       <div className="flex justify-between items-center mb-8">
-        <h3 className="text-lg font-bold text-neutral-800 tracking-tight">{category} 히트맵</h3>
+        <h3 className="text-lg font-bold text-neutral-800 tracking-tight">{category} 키워드 분석</h3>
         <span className="px-3 py-1 bg-neutral-100 text-neutral-500 rounded-full text-[11px] font-black tracking-widest uppercase">
           {country}
         </span>

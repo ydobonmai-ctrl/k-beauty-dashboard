@@ -49,10 +49,8 @@ export default async function DashboardOverview() {
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
-      {/* AI Executive Summary Banner */}
-      <ExecutiveSummary insights={insights} />
-
+    <div className="space-y-10 animate-in fade-in duration-700 pb-20">
+      {/* 1. Pulse Metrics Layer */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="글로벌 브랜드 수요 지수"
@@ -81,29 +79,38 @@ export default async function DashboardOverview() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white border border-neutral-200 rounded-3xl p-8 shadow-sm">
-            <TrendChart data={krTrends} title="한국 시장 수요 트렌드 (14일)" />
-          </div>
-          <OpportunityMatrix insights={insights} />
+      {/* 2. Executive Strategy & Urgent Risks Layer */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <ExecutiveSummary insights={insights} />
         </div>
 
-        <div className="flex flex-col h-full gap-6">
-          <AgentAdvisor insights={insights} />
+        <div className="bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 rounded-3xl p-8 shadow-sm flex flex-col">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-xl font-black tracking-tighter text-neutral-800 dark:text-neutral-200">긴급 이슈</h3>
+            <span className="bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-[11px] font-black px-3 py-1 rounded-full border border-rose-100 dark:border-rose-900/50 uppercase tracking-wider">
+              2개 처리 필요
+            </span>
+          </div>
+          <div className="flex-1 space-y-6 overflow-y-auto max-h-[320px] pr-2 custom-scrollbar">
+            {alerts.filter(a => a.severity === 'high').map(alert => (
+              <AlertCard key={alert.id} alert={alert} />
+            ))}
+          </div>
+        </div>
+      </div>
 
-          <div className="bg-white border border-neutral-200 rounded-3xl p-8 shadow-sm flex flex-col flex-1">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-black tracking-tighter text-neutral-800">긴급 이슈</h3>
-              <span className="bg-rose-50 text-rose-600 text-[11px] font-black px-3 py-1 rounded-full border border-rose-100 uppercase tracking-wider">
-                2개 처리 필요
-              </span>
-            </div>
-            <div className="flex-1 space-y-6 overflow-y-auto pr-2">
-              {alerts.filter(a => a.severity === 'high').map(alert => (
-                <AlertCard key={alert.id} alert={alert} />
-              ))}
-            </div>
+      {/* 3. Intelligence & Visual Analysis Layer */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-1">
+          <AgentAdvisor insights={insights} />
+        </div>
+
+        <div className="lg:col-span-2 space-y-8">
+          <OpportunityMatrix insights={insights} />
+
+          <div className="bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 rounded-3xl p-8 shadow-sm">
+            <TrendChart data={krTrends} title="한국 시장 수요 트렌드 (14일)" />
           </div>
         </div>
       </div>

@@ -28,4 +28,7 @@ We decompose this problem into four distinct layers:
 1. `getTrendsData` & `getInternalSales` -> Raw Data
 2. `getMappedInsights` -> Integration & Scoring
 3. `getAgentInsights` -> LLM Analysis & Rationale
-4. Dashboard UI -> User Feedback -> Loop back to Agent refinement
+4. Dashboard UI -> User Feedback -> Loop back to Agent refinement## 4. Dynamic Contextual Routing
+- **Pattern**: `[country]/[category]/[keyword]` based routing.
+- **Benefit**: Enables a scalable architecture where one analytics engine can serve infinite product/market combinations by pulling relevant "Rationales" on demand.
+- **Product Depth**: Moving from a flat dashboard to a deep analysis tool demonstrates the "Technical Structuring" required to solve high-order business problems.
