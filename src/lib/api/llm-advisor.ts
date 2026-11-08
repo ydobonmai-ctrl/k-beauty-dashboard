@@ -99,7 +99,11 @@ async function callGemini(prompt: string, apiKey: string) {
       cache: 'no-store',
     });
     if (res.status === 429 || res.status === 503) { lastError = `${model} ${res.status}`; continue; }
-    if (!res.ok) throw new Error(`${model} HTTP ${res.status}`);
+    if (!res.ok) {
+      // Gemini 오류 메시지(예: API key not valid)를 함께 남겨 원인을 바로 알 수 있게 한다. 키 값은 포함되지 않는다.
+      const detail = await res.json().then(b => b?.error?.message as string | undefined).catch(() => undefined);
+      throw new Error(`${model} HTTP ${res.status}${detail ? `: ${detail.slice(0, 120)}` : ''}`);
+    }
     const body = await res.json();
     const text: string | undefined = body?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) throw new Error(`${model} 빈 응답`);
