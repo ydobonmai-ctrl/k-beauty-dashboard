@@ -45,7 +45,7 @@ export default function RecommendationsPage() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-10">
         <div>
           <h2 className="text-2xl font-black tracking-tight text-neutral-800 mb-2">AI 기반 전략 제언</h2>
-          <p className="text-neutral-500">수요 데이터, 환율, 재고 상태를 종합 분석하여 도출된 최적의 비즈니스 액션 아이템입니다.</p>
+          <p className="text-neutral-500">아래는 고정된 샘플 전략입니다. 실제 Google Trends 분석 결과나 실제 매출·재고 기반 제안이 아닙니다.</p>
         </div>
       </div>
 

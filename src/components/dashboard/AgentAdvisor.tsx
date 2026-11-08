@@ -1,21 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { MappedInsight } from '@/types';
-import { Sparkles, TrendingUp, AlertCircle, ThumbsUp, ThumbsDown, BrainCircuit } from 'lucide-react';
+import { Sparkles, TrendingUp, ThumbsUp, ThumbsDown, BrainCircuit, AlertTriangle } from 'lucide-react';
 import { submitAgentFeedback } from '@/lib/api/agent';
+import type { AdvisorResult } from '@/lib/api/llm-advisor';
 
 interface AgentAdvisorProps {
-  insights: MappedInsight[];
+  advisor: AdvisorResult;
 }
 
-export function AgentAdvisor({ insights }: AgentAdvisorProps) {
+export function AgentAdvisor({ advisor }: AgentAdvisorProps) {
   const [feedbackGiven, setFeedbackGiven] = useState<Record<string, 'helpful' | 'unhelpful' | null>>({});
-
-  // Get top 3 opportunities by score
-  const topOpportunities = [...insights]
-    .sort((a, b) => b.opportunityScore - a.opportunityScore)
-    .slice(0, 3);
+  const isLlm = advisor.source === 'gemini';
 
   const handleFeedback = async (id: string, type: 'helpful' | 'unhelpful') => {
     await submitAgentFeedback(id, type);
@@ -31,17 +27,28 @@ export function AgentAdvisor({ insights }: AgentAdvisorProps) {
           </div>
           <div>
             <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">AI Agent Advisor</h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Market intelligence & recommendation engine</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              {isLlm
+                ? `${advisor.model} 생성 · 근거: Google Trends·환율 실데이터 (샘플 매출 미사용)`
+                : '규칙 기반 제안'}
+            </p>
           </div>
         </div>
-        <div className="px-2 py-1 bg-white dark:bg-zinc-950 border border-indigo-200 dark:border-indigo-800 rounded-md">
-          <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Live Analysis</span>
+        <div className={`px-2 py-1 rounded-md border ${isLlm ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${isLlm ? 'text-emerald-700' : 'text-amber-700'}`}>
+            {isLlm ? 'LLM 연결' : 'LLM 미연결'}
+          </span>
         </div>
       </div>
 
+      {advisor.note && (
+        <p className="px-6 pt-4 text-xs text-amber-700 flex items-center gap-1"><AlertTriangle size={12} />{advisor.note}</p>
+      )}
+
       <div className="p-6 space-y-6">
-        {topOpportunities.map((insight, idx) => {
-          const feedbackId = `${insight.keyword}-${insight.country}`;
+        {advisor.items.length === 0 && <p className="text-sm text-zinc-500">표시할 제안이 없습니다.</p>}
+        {advisor.items.map((item, idx) => {
+          const feedbackId = `${item.keyword}-${item.country}`;
           const currentFeedback = feedbackGiven[feedbackId];
 
           return (
@@ -53,83 +60,63 @@ export function AgentAdvisor({ insights }: AgentAdvisorProps) {
                 <div className="flex-1 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">{insight.keyword}</span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">{item.keyword}</span>
                       <span className="text-xs px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-zinc-600 dark:text-zinc-400">
-                        {insight.country}
+                        {item.country}
                       </span>
                     </div>
                     <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
                       <TrendingUp size={14} />
-                      <span className="text-sm">Score: {insight.opportunityScore}</span>
+                      <span className="text-sm">관심도 {item.growth > 0 ? '+' : ''}{item.growth}%</span>
                     </div>
                   </div>
 
-                  {insight.agentInsight && (
-                    <div className="bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100/50 dark:border-indigo-900/20 p-4 rounded-xl space-y-2">
-                      <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 text-xs font-bold uppercase tracking-tight">
-                        <Sparkles size={12} />
-                        AI Rationale
-                      </div>
-                      <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed font-medium">
-                        {insight.agentInsight.rationale}
-                      </p>
-                      <div className="pt-2 border-t border-indigo-100/50 dark:border-indigo-900/20">
-                        <p className="text-xs text-indigo-600 dark:text-indigo-500 italic">
-                          <span className="font-bold">Recommendation:</span> {insight.agentInsight.recommendation}
-                        </p>
-                      </div>
+                  <div className="bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100/50 dark:border-indigo-900/20 p-4 rounded-xl space-y-2">
+                    <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 text-xs font-bold uppercase tracking-tight">
+                      <Sparkles size={12} />
+                      AI Rationale
                     </div>
-                  )}
+                    <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed font-medium">{item.rationale}</p>
+                    <div className="pt-2 border-t border-indigo-100/50 dark:border-indigo-900/20 space-y-1">
+                      <p className="text-xs text-indigo-600 dark:text-indigo-500">
+                        <span className="font-bold">Recommendation:</span> {item.recommendation}
+                      </p>
+                      {item.watchout && (
+                        <p className="text-xs text-zinc-500"><span className="font-bold">주의:</span> {item.watchout}</p>
+                      )}
+                    </div>
+                  </div>
 
                   <div className="flex items-center justify-between pt-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-zinc-400 uppercase">Confidence: {insight.agentInsight?.confidence}%</span>
-                    </div>
+                    <span className="text-[10px] text-zinc-400">
+                      관심도 점수 {item.score}/100 · 생성 {new Date(advisor.generatedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
+                    </span>
 
                     {!currentFeedback ? (
                       <div className="flex items-center gap-2 border-l border-zinc-100 dark:border-zinc-800 pl-3">
                         <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-tighter">Feedback?</span>
-                        <button
-                          onClick={() => handleFeedback(feedbackId, 'helpful')}
-                          className="p-1 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded transition-colors text-zinc-400 hover:text-emerald-500"
-                          title="Helpful"
-                        >
+                        <button onClick={() => handleFeedback(feedbackId, 'helpful')}
+                          className="p-1 hover:bg-emerald-50 rounded transition-colors text-zinc-400 hover:text-emerald-500" title="Helpful">
                           <ThumbsUp size={14} />
                         </button>
-                        <button
-                          onClick={() => handleFeedback(feedbackId, 'unhelpful')}
-                          className="p-1 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-colors text-zinc-400 hover:text-rose-500"
-                          title="Unhelpful"
-                        >
+                        <button onClick={() => handleFeedback(feedbackId, 'unhelpful')}
+                          className="p-1 hover:bg-rose-50 rounded transition-colors text-zinc-400 hover:text-rose-500" title="Unhelpful">
                           <ThumbsDown size={14} />
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1.5 py-1 px-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-100 dark:border-zinc-800">
-                        {currentFeedback === 'helpful' ? (
-                          <>
-                            <ThumbsUp size={12} className="text-emerald-500" />
-                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-black uppercase tracking-tight">Helpful Recognized</span>
-                          </>
-                        ) : (
-                          <>
-                            <ThumbsDown size={12} className="text-rose-500" />
-                            <span className="text-[10px] text-rose-600 dark:text-rose-400 font-black uppercase tracking-tight">Feedback Recorded</span>
-                          </>
-                        )}
-                      </div>
+                      <span className="text-[10px] text-zinc-500 font-bold">피드백 기록됨</span>
                     )}
                   </div>
                 </div>
               </div>
-              {idx !== topOpportunities.length - 1 && (
+              {idx !== advisor.items.length - 1 && (
                 <div className="absolute -bottom-3 left-4 right-0 h-px bg-zinc-100 dark:bg-zinc-800" />
               )}
             </div>
           );
         })}
       </div>
-
     </div>
   );
 }

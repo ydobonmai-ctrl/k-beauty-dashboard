@@ -14,10 +14,10 @@ export async function getAgentAnalysis(insight: MappedInsight): Promise<AgentIns
   // Reasoning logic based on product context
   let rationale = '';
   let recommendation = '';
-  let confidence = 0.85 + (Math.random() * 0.1);
+  const confidence = 0;
 
   if (growth > 50) {
-    rationale = `${country} 시장에서 '${keyword}' 검색량이 급증하고 있습니다. SNS 바이럴 가능성이 높으며 구매 의도가 뚜렷합니다.`;
+    rationale = `${country} 시장의 '${keyword}' 검색 관심도가 직전 7일 대비 ${growth}% 상승했습니다. 이 수치만으로 구매 의도나 판매량을 판단할 수는 없습니다.`;
     recommendation = `공격적인 퍼포먼스 마케팅과 인플루언서 협업을 통해 초기 수요를 선점하세요.`;
   } else if (inventoryLevel === 'low') {
     rationale = `'${keyword}'의 트렌드 지수는 안정적이나, 현재 재고 수준이 낮아 기회 손실(Out-of-stock) 위험이 있습니다.`;
@@ -27,12 +27,7 @@ export async function getAgentAnalysis(insight: MappedInsight): Promise<AgentIns
     recommendation = `묶음 판매나 프로모션을 통해 객단가(AOV)를 높이는 전략이 유효합니다.`;
   }
 
-  // Specific keyword override (Product Engineer's Attention to Detail)
-  if (keyword === 'PDRN 세럼') {
-    rationale = `현재 K-Beauy의 차세대 성분으로 PDRN이 주목받고 있습니다. 관련 고유 검색어가 200% 이상 상승했습니다.`;
-    recommendation = `성분 중심의 검색 광고(SA)를 확장하고, '피부 재생' 키워드와 연계한 상세 페이지 보완이 필요합니다.`;
-    confidence = 0.98;
-  }
+  rationale += ' 매출·재고는 샘플 데이터에 기반한 시연입니다.';
 
   return {
     rationale,

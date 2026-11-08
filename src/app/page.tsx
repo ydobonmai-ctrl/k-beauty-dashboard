@@ -1,5 +1,6 @@
-import { getFxRates } from '@/lib/api/fx';
+import { getFxSnapshot } from '@/lib/api/fx';
 import { getTrendsData, getMappedInsights } from '@/lib/api/trends';
+import { getAdvisor } from '@/lib/api/llm-advisor';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { AlertCard } from '@/components/dashboard/AlertCard';
 import { TrendChart } from '@/components/charts/TrendChart';
@@ -7,75 +8,57 @@ import { ExecutiveSummary } from '@/components/dashboard/ExecutiveSummary';
 import { OpportunityMatrix } from '@/components/charts/OpportunityMatrix';
 import { AgentAdvisor } from '@/components/dashboard/AgentAdvisor';
 import { Alert } from '@/types';
+import { TrendsSource } from '@/components/dashboard/TrendsSource';
 
 export default async function DashboardOverview() {
-  const [fxRates, krTrends, usTrends, insights] = await Promise.all([
-    getFxRates(),
+  const [fx, krTrends, insights] = await Promise.all([
+    getFxSnapshot(),
     getTrendsData('KR', 14),
-    getTrendsData('US', 14),
     getMappedInsights()
   ]);
+  const advisor = await getAdvisor(insights, fx);
 
-  const krRate = fxRates.find(f => f.currency === 'KRW')?.rate.toLocaleString() || '0';
-  const jpRate = fxRates.find(f => f.currency === 'JPY')?.rate.toLocaleString() || '0';
+  const krw = fx.rates.find(f => f.currency === 'KRW');
+  const jpy = fx.rates.find(f => f.currency === 'JPY');
+  const fxSubtitle = fx.status === 'connected' ? `ECB 기준 환율 · ${fx.asOf}` : `환율 연결 실패 (${fx.error})`;
 
-  const alerts: Alert[] = [
-    {
-      id: '1',
-      type: 'opportunity',
-      title: 'PDRN 세럼 한국 시장 급성장',
-      description: '검색 관심도가 전주 대비 120% 상승했습니다. 현재 재고 수준은 "낮음"으로 확인됩니다. 즉시 생산량 확대를 권장합니다.',
-      severity: 'high',
-      country: 'KR',
-      category: '스킨케어'
-    },
-    {
-      id: '2',
-      type: 'risk',
-      title: '엔저 현상에 따른 수익성 악화 우려',
-      description: '엔화 가치가 달러 대비 2% 하락했습니다. 쿠션 파운데이션 수출 마진에 영향이 예상됩니다. FX 헤징 검토가 필요합니다.',
-      severity: 'medium',
-      country: 'JP'
-    },
-    {
-      id: '3',
-      type: 'info',
-      title: '미국 시장 립글로스 수요 안정세',
-      description: '미국 내 립글로스 검색량이 높은 수준에서 안정화되었습니다. 현재 재고로 예상 수요 대응이 가능합니다.',
-      severity: 'low',
-      country: 'US',
-      category: '메이크업'
-    }
-  ];
+  const topKeyword = [...insights].filter(i => i.growthAvailable).sort((a, b) => b.growth - a.growth)[0];
+  const krTop = [...insights].filter(i => i.country === 'KR' && i.growthAvailable).sort((a, b) => b.growth - a.growth)[0];
+  const alerts: Alert[] = insights.filter(i => i.growthAvailable && i.growth > 30).slice(0, 3).map(i => ({
+    id: `${i.country}-${i.keyword}`, type: 'info', title: `${i.country} · ${i.keyword} 검색 관심도 상승`,
+    description: `최근 7일 평균 관심도가 직전 7일 대비 ${i.growth}% 상승했습니다. 검색 관심도는 구매량이나 매출을 의미하지 않습니다.`,
+    severity: 'high', country: i.country, category: i.category,
+  }));
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700 pb-20">
+      <TrendsSource />
       {/* 1. Pulse Metrics Layer */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title="글로벌 브랜드 수요 지수"
-          value="84.2"
-          subtitle="구글 트렌드 색인"
-          trend={{ value: 12.5, label: '전주 대비' }}
+          title="최고 검색 관심도 성장 키워드"
+          value={topKeyword?.keyword ?? '데이터 없음'}
+          subtitle={topKeyword ? `${topKeyword.country} · Google Trends` : '연결 상태 확인'}
+          trend={topKeyword ? { value: topKeyword.growth, label: '직전 7일 대비' } : undefined}
           highlight
         />
         <StatCard
-          title="최고 인기 카테고리 (KR)"
-          value="스킨케어"
-          subtitle="PDRN 세럼"
-          trend={{ value: 45, label: '전월 대비' }}
+          title="한국 검색 관심도 성장 키워드"
+          value={krTop?.keyword ?? '데이터 없음'}
+          subtitle={krTop?.category ?? '연결 상태 확인'}
+          trend={krTop ? { value: krTop.growth, label: '직전 7일 대비' } : undefined}
         />
         <StatCard
           title="환율 (USD/KRW)"
-          value={krRate}
-          subtitle="수출 환산 기준"
-          trend={{ value: 1.2, label: '우호적' }}
+          value={krw ? krw.rate.toLocaleString() : '연결 실패'}
+          subtitle={fxSubtitle}
+          trend={krw ? { value: krw.change7d, label: '5영업일 대비' } : undefined}
         />
         <StatCard
           title="환율 (USD/JPY)"
-          value={jpRate}
-          subtitle="수출 환산 기준"
-          trend={{ value: -0.8, label: '주의' }}
+          value={jpy ? jpy.rate.toLocaleString() : '연결 실패'}
+          subtitle={fxSubtitle}
+          trend={jpy ? { value: jpy.change7d, label: '5영업일 대비' } : undefined}
         />
       </div>
 
@@ -87,12 +70,13 @@ export default async function DashboardOverview() {
 
         <div className="bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 rounded-3xl p-8 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-xl font-black tracking-tighter text-neutral-800 dark:text-neutral-200">긴급 이슈</h3>
+            <h3 className="text-xl font-black tracking-tighter text-neutral-800 dark:text-neutral-200">검색 관심도 변화</h3>
             <span className="bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-[11px] font-black px-3 py-1 rounded-full border border-rose-100 dark:border-rose-900/50 uppercase tracking-wider">
-              2개 처리 필요
+              {alerts.length}개 키워드
             </span>
           </div>
           <div className="flex-1 space-y-6 overflow-y-auto max-h-[320px] pr-2 custom-scrollbar">
+            {alerts.length === 0 && <p className="text-neutral-500">표시할 급상승 키워드가 없습니다.</p>}
             {alerts.filter(a => a.severity === 'high').map(alert => (
               <AlertCard key={alert.id} alert={alert} />
             ))}
@@ -103,7 +87,7 @@ export default async function DashboardOverview() {
       {/* 3. Intelligence & Visual Analysis Layer */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1">
-          <AgentAdvisor insights={insights} />
+          <AgentAdvisor advisor={advisor} />
         </div>
 
         <div className="lg:col-span-2 space-y-8">

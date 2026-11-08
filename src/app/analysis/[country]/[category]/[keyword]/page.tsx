@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { BrainCircuit, TrendingUp, AlertCircle, ShoppingBag, ArrowLeft, CheckCircle2, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
 import { StatCard } from '@/components/dashboard/StatCard';
+import { TrendsSource } from '@/components/dashboard/TrendsSource';
 
 interface PageProps {
   params: Promise<{
@@ -20,15 +21,17 @@ export default async function AnalysisPage({ params }: PageProps) {
   const decodedKeyword = decodeURIComponent(keyword);
   const decodedCategory = decodeURIComponent(category) as Category;
   const decodedCountry = decodeURIComponent(country) as Country;
+  if (!['KR', 'US', 'JP'].includes(decodedCountry) || !['스킨케어', '메이크업'].includes(decodedCategory)) notFound();
 
   const insight = await getInsightByContext(decodedCountry, decodedCategory, decodedKeyword);
 
   if (!insight) {
-    notFound();
+    return <div className="space-y-6"><TrendsSource /><p>이 검색어의 데이터를 가져오지 못했거나 검색 데이터가 부족합니다.</p><Link href="/trends">트렌드 화면으로 돌아가기</Link></div>;
   }
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <TrendsSource />
       {/* Header */}
       <div className="flex flex-col gap-4">
         <Link
@@ -62,7 +65,7 @@ export default async function AnalysisPage({ params }: PageProps) {
                   <p className="font-bold text-fuchsia-400 mb-1">산출 공식 (Calculation Formula)</p>
                   <p className="leading-relaxed">
                     (성장세 × 0.4) + (관심도 × 0.3) + (환율 우호도) + (재고 가중치)<br />
-                    <span className="text-zinc-500 mt-1 block italic font-medium">실시간 데이터와 LLM 추론 엔진이 결합된 집계 점수입니다.</span>
+                    <span className="text-zinc-500 mt-1 block italic font-medium">검색 관심도와 샘플 ERP를 결합한 시연 점수입니다. LLM 미연결.</span>
                   </p>
                 </div>
               </div>
@@ -79,27 +82,26 @@ export default async function AnalysisPage({ params }: PageProps) {
         <StatCard
           title="트렌드 지수"
           value={insight.trendScore.toString()}
-          subtitle="Google Trends"
-          trend={{ value: insight.growth, label: '관심도 점수' }}
+          subtitle="기간 내 자체 최고치 대비 최근 7일 평균"
+          trend={insight.growthAvailable ? { value: insight.growth, label: '직전 7일 대비' } : undefined}
           highlight
         />
         <StatCard
           title="현재 매출 (USD)"
           value={`$${insight.fxAdjustedRevenue.toLocaleString()}`}
-          subtitle="최근 30일"
+          subtitle="샘플 매출"
           trend={{ value: 8.2, label: '전월 대비' }}
         />
         <StatCard
           title="재고 상태"
           value={insight.inventoryLevel === 'low' ? '경고 (부족)' : insight.inventoryLevel === 'medium' ? '보통' : '양호'}
-          subtitle="현재 가용 재고"
+          subtitle="샘플 재고"
           trend={{ value: 0.5, label: '회전율' }}
         />
         <StatCard
-          title="AI 컨피던스"
-          value={`${insight.agentInsight?.confidence || 92}%`}
-          subtitle="데이터 신뢰도"
-          trend={{ value: 1.2, label: '정확도 향상중' }}
+          title="전략 제안 방식"
+          value="규칙 기반"
+          subtitle="시연 · 모델 신뢰도 측정 없음"
         />
       </div>
 

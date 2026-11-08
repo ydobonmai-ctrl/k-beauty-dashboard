@@ -1,34 +1,11 @@
-# System Architecture: K-Beauty Trend Insight Agent
+# Data architecture
 
-## 1. Problem Definition
-The Product Engineer role requires translating business needs into technical solutions. In the K-Beauty context, the problem is:
-> "How can we transform vast amounts of external market data and internal sales data into actionable business strategies automatically?"
+Google Trends website session -> explore TIMESERIES token -> multiline daily data -> validation and removal of partial dates -> in-process country snapshot cache -> dashboard.
 
-## 2. Technical Structuring
-We decompose this problem into four distinct layers:
+`google-trends.ts` uses the public website endpoints, not the restricted official API alpha. Requests are serialized. HTTP 429 triggers a five-minute cooldown. Google may change these endpoints or limit access.
 
-### A. Data Layer (Ingestion)
-- **External Trends**: Mocked Google Search/SNS trend data by country and category.
-- **Internal Performance**: Sales revenue and inventory levels mapped by product keywords.
-- **External Factors**: Real-time FX rates to adjust revenue potential.
+`trends.ts` maps local-language searches back to Korean display keywords. Country is part of every keyword record and the ERP join key. Per-keyword scores are normalized to that keyword's own peak; growth is recent seven-day mean versus the preceding seven days. Unavailable baselines are explicitly marked. Category charts use Google's two-term comparison values.
 
-### B. Logic Layer (Integration)
-- **Opportunity Scoring**: A weighted algorithm that combines growth trajectory, current popularity, and FX favorability.
-- **Formula**: `(Growth * 0.4) + (Score * 0.3) + (FX_Favorability) + (Inventory_Level_Bonus)`
+The cache shares in-flight requests and keeps successful country snapshots for one hour and failures for five minutes. Server restart clears it. Dynamic routes avoid capturing a build-time snapshot. Failures produce empty datasets with visible source status, never invented values.
 
-### C. Agent Layer (Intelligence)
-- **LLM Agent**: A reasoning engine that interprets the "Opportunity Score" and provides natural language rationales.
-- **Rationale Generator**: Context-aware explanations that justify why a specific product or keyword is a priority.
-
-### D. Presentation Layer (Delivery)
-- **Responsive Dashboard**: Next.js 15 based UI for executive decision making.
-- **Feedback Loop**: Integrated UI components to collect user feedback on AI insights, enabling iterative model improvement.
-
-## 3. Data Flow
-1. `getTrendsData` & `getInternalSales` -> Raw Data
-2. `getMappedInsights` -> Integration & Scoring
-3. `getAgentInsights` -> LLM Analysis & Rationale
-4. Dashboard UI -> User Feedback -> Loop back to Agent refinement## 4. Dynamic Contextual Routing
-- **Pattern**: `[country]/[category]/[keyword]` based routing.
-- **Benefit**: Enables a scalable architecture where one analytics engine can serve infinite product/market combinations by pulling relevant "Rationales" on demand.
-- **Product Depth**: Moving from a flat dashboard to a deep analysis tool demonstrates the "Technical Structuring" required to solve high-order business problems.
+Sales, inventory, FX and the opportunity score are demo data/logic. The agent is a rule-based demonstration, with no LLM connection or measured confidence. The recommendations page contains explicitly labelled fixed examples.

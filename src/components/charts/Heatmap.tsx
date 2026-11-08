@@ -19,6 +19,7 @@ export function Heatmap({ data, country, category }: HeatmapProps) {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+        {data.length === 0 && <p className="text-amber-700 col-span-full">검색 데이터를 수집하지 못했습니다. 연결 상태를 확인하세요.</p>}
         {data.map((item) => {
           let bgClass = "bg-neutral-50";
           let textClass = "text-neutral-600";
@@ -49,7 +50,7 @@ export function Heatmap({ data, country, category }: HeatmapProps) {
                   {item.score}
                 </div>
                 <div className={`text-[12px] ${item.growth >= 0 ? 'text-emerald-600' : 'text-rose-600'} font-black bg-white/40 px-2 py-1 rounded backdrop-blur-sm border border-white/20`}>
-                  {item.growth >= 0 ? '▲' : '▼'}{Math.abs(item.growth)}%
+                  {item.growthAvailable ? `${item.growth >= 0 ? '▲' : '▼'}${Math.abs(item.growth)}%` : '비교 불가'}
                 </div>
               </div>
             </div>

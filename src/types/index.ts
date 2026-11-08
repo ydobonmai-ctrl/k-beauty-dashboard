@@ -21,10 +21,12 @@ export const KEYWORDS: Record<Category, string[]> = {
 };
 
 export interface KeywordTrend {
+  country: Country;
   keyword: string;
   category: Category;
   score: number; // Current Google Trends intensity (0-100)
   growth: number; // Over selected timeframe
+  growthAvailable: boolean;
 }
 
 export interface TrendData {
@@ -37,7 +39,8 @@ export interface FxRate {
   currency: 'KRW' | 'JPY' | 'USD';
   rate: number; // Base USD
   trend: 'up' | 'down' | 'stable';
-  volatility: number;
+  volatility: number; // 일별 변화율 표준편차(%)
+  change7d: number;   // 5영업일 전 대비 변화율(%)
 }
 
 export interface InternalSales {
@@ -60,6 +63,7 @@ export interface MappedInsight {
   country: Country;
   trendScore: number;
   growth: number;
+  growthAvailable: boolean;
   fxAdjustedRevenue: number; // Revenue mapped against FX rate
   inventoryLevel: 'low' | 'medium' | 'high';
   opportunityScore: number; // Computed metric based on rising demand + FX + sales

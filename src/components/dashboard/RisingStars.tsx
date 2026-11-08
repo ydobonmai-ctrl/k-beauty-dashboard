@@ -9,12 +9,13 @@ interface RisingStarsProps {
 
 export function RisingStars({ insights }: RisingStarsProps) {
   const stars = insights
-    .filter(i => i.growth > 30)
+    .filter(i => i.growthAvailable && i.growth > 30)
     .sort((a, b) => b.opportunityScore - a.opportunityScore)
     .slice(0, 4);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {stars.length === 0 && <p className="text-neutral-500">표시할 고성장 검색어가 없습니다.</p>}
       {stars.map((star, idx) => (
         <div key={idx} className="bg-white border border-neutral-200 rounded-2xl p-5 shadow-sm hover:border-fuchsia-300 transition-all group">
           <div className="flex justify-between items-start mb-3">

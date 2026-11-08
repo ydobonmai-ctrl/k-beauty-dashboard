@@ -25,7 +25,7 @@ export function ExecutiveSummary({ insights }: ExecutiveSummaryProps) {
           <div className="bg-white/20 backdrop-blur-md p-2 rounded-xl border border-white/30">
             <Zap className="w-5 h-5 text-yellow-300 fill-yellow-300" />
           </div>
-          <h3 className="text-xl font-black tracking-tighter">실시간 AI 경영진 전략 요약</h3>
+          <h3 className="text-xl font-black tracking-tighter">전략 요약 · 샘플 ERP 기반 시연</h3>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">

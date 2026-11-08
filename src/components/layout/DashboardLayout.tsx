@@ -46,7 +46,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <div className="text-[10px] font-bold text-neutral-400 mb-2 tracking-widest uppercase">데이터 연결 상태</div>
           <div className="flex items-center space-x-2 text-sm text-emerald-600 font-medium">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>실시간 데이터 연동됨</span>
+            <span>Google Trends · 페이지에서 상태 확인</span>
           </div>
         </div>
       </aside>
@@ -61,7 +61,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex items-center space-x-4">
             <div className="text-xs font-semibold text-neutral-500 bg-neutral-100 px-3 py-1.5 rounded-full border border-neutral-200">
-              업데이트: {new Date().toLocaleDateString('ko-KR')}
+              개인 프로젝트 · ERP 데이터는 샘플
             </div>
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-600 flex items-center justify-center font-bold text-white shadow-lg shadow-fuchsia-200">
               KR
@@ -69,6 +69,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         <div className="flex-1 overflow-auto p-8 space-y-8 bg-neutral-50/30">
+          <p className="text-sm text-neutral-500">개인 프로젝트: 검색 관심도(Google Trends)·환율(ECB)은 실데이터, 매출·재고와 ERP 기반 전략 요약은 샘플입니다. AI 제안은 실데이터만 근거로 Gemini가 생성합니다.</p>
           {children}
         </div>
       </main>

@@ -9,6 +9,7 @@ interface TrendsLeaderboardProps {
 
 export function TrendsLeaderboard({ insights }: TrendsLeaderboardProps) {
   const topTrending = [...insights]
+    .filter(item => item.growthAvailable)
     .sort((a, b) => b.growth - a.growth)
     .slice(0, 5);
 
@@ -25,6 +26,7 @@ export function TrendsLeaderboard({ insights }: TrendsLeaderboardProps) {
       </div>
 
       <div className="space-y-4">
+        {topTrending.length === 0 && <p className="text-neutral-500">비교 가능한 검색 데이터가 없습니다.</p>}
         {topTrending.map((item, idx) => (
           <div key={idx} className="flex items-center justify-between p-4 rounded-2xl hover:bg-neutral-50 transition-colors group">
             <div className="flex items-center space-x-4">
@@ -38,9 +40,9 @@ export function TrendsLeaderboard({ insights }: TrendsLeaderboardProps) {
             </div>
             <div className="text-right">
               <div className="text-[11px] font-black text-emerald-600 flex items-center justify-end">
-                <TrendingUp className="w-3 h-3 mr-1" /> +{item.growth}%
+                <TrendingUp className="w-3 h-3 mr-1" /> {item.growth > 0 ? '+' : ''}{item.growth}%
               </div>
-              <div className="text-[10px] font-bold text-neutral-400">성장 가속도</div>
+              <div className="text-[10px] font-bold text-neutral-400">직전 7일 대비</div>
             </div>
           </div>
         ))}

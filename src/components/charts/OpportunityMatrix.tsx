@@ -8,11 +8,11 @@ interface OpportunityMatrixProps {
 }
 
 export function OpportunityMatrix({ insights }: OpportunityMatrixProps) {
-  const data = insights.map(i => ({
+  const data = insights.filter(i => i.growthAvailable).map(i => ({
     name: i.keyword,
     x: i.growth, // 수요 성장성
     y: i.opportunityScore, // 기회 지수 (FX 등 반영)
-    z: i.trendScore, // 버블 크기 (현재 수요 절대치)
+    z: i.trendScore, // Own-keyword relative interest, not absolute demand
     country: i.country,
     category: i.category
   }));

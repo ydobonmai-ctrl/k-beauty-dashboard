@@ -1,6 +1,7 @@
 import { getKeywordTrends } from '@/lib/api/trends';
 import { Heatmap } from '@/components/charts/Heatmap';
 import { HeatmapFilter } from '@/components/dashboard/HeatmapFilter';
+import { TrendsSource } from '@/components/dashboard/TrendsSource';
 
 export default async function HeatmapPage({
   searchParams,
@@ -28,10 +29,11 @@ export default async function HeatmapPage({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      <TrendsSource />
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
           <h2 className="text-2xl font-black tracking-tight text-neutral-800 mb-2">키워드 히트맵 분석</h2>
-          <p className="text-neutral-500">K-Beauty 주요 키워드별 검색 집약도(0-100) 및 성장 추이 시각화.</p>
+          <p className="text-neutral-500">각 검색어의 기간 내 최고치 대비 최근 관심도(0–100)와 직전 7일 대비 변화율.</p>
         </div>
         <div className="flex gap-2">
           <HeatmapFilter selected={selectedCountry || '전체'} />
@@ -43,8 +45,8 @@ export default async function HeatmapPage({
           <Heatmap
             key={`${item.country}-${item.category}-${idx}`}
             data={item.data}
-            country={item.country as any}
-            category={item.category as any}
+            country={item.country}
+            category={item.category}
           />
         ))}
       </div>

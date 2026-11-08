@@ -1,55 +1,75 @@
 import { Country, Category, TrendData, KEYWORDS, KeywordTrend } from '@/types';
-import { subDays, format } from 'date-fns';
+import { fetchInterest, summarizeInterest } from './google-trends';
 
-const generateMockTrends = (country: Country, days: number): TrendData[] => {
-  // Use a pseudo-random approach that remains relatively stable for the same day
-  return Array.from({ length: days }).map((_, i) => {
-    const date = format(subDays(new Date(), days - i - 1), 'yyyy-MM-dd');
-    let skincareBase = country === 'KR' ? 75 : country === 'JP' ? 55 : 65;
-    let makeupBase = country === 'JP' ? 85 : country === 'US' ? 75 : 60;
-
-    // Predictable noise based on index
-    const noiseS = (Math.sin(i) * 15);
-    const noiseM = (Math.cos(i) * 15);
-
-    return {
-      date,
-      skincare: Math.round(Math.max(0, Math.min(100, skincareBase + noiseS))),
-      makeup: Math.round(Math.max(0, Math.min(100, makeupBase + noiseM))),
-    };
-  });
+export const SEARCH_TERMS: Record<Country, Record<Category, string[]>> = {
+  KR: KEYWORDS,
+  US: {
+    '스킨케어': ['cleansing balm', 'sunscreen', 'moisturizer', 'soothing cream', 'skin barrier', 'PDRN serum'],
+    '메이크업': ['lip gloss', 'lip tint', 'cushion foundation', 'glass lips', 'blush', 'tinted lip balm'],
+  },
+  JP: {
+    '스킨케어': ['クレンジングバーム', '日焼け止め', '保湿クリーム', '鎮静クリーム', '肌バリア', 'PDRN 美容液'],
+    '메이크업': ['リップグロス', 'リップティント', 'クッションファンデ', 'グラスリップ', 'チーク', '色付きリップバーム'],
+  },
 };
-
-export async function getTrendsData(country: Country, days: number = 30): Promise<TrendData[]> {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return generateMockTrends(country, days);
+const CATEGORY_TERMS: Record<Country, string[]> = {
+  KR: ['스킨케어', '메이크업'], US: ['skincare', 'makeup'], JP: ['スキンケア', 'メイクアップ'],
+};
+export interface TrendsSnapshot {
+  country: Country;
+  status: 'connected' | 'unavailable';
+  fetchedAt: string;
+  lastDate?: string;
+  error?: string;
+  timeline: TrendData[];
+  keywords: KeywordTrend[];
 }
+const snapshots = new Map<Country, { expires: number; value: Promise<TrendsSnapshot> }>();
 
-export async function getKeywordTrends(country: Country, category: Category): Promise<KeywordTrend[]> {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  const keywords = KEYWORDS[category];
-
-  return keywords.map((keyword, index) => {
-    let score = 50 + (Math.sin(index) * 20);
-    let growth = (Math.cos(index) * 30);
-
-    // Hero products overrides
-    if (keyword === 'PDRN 세럼' && country === 'KR') { score = 95; growth = 120; }
-    if (keyword === '립글로스' && country === 'US') { score = 88; growth = 45; }
-    if (keyword === '쿠션 파운데이션' && country === 'JP') { score = 92; growth = 60; }
-    if (keyword === '컬러 밤' && country === 'KR') { score = 85; growth = 80; }
-    if (keyword === '피부 장벽' && country === 'US') { score = 75; growth = 25; }
-
-    return {
-      keyword,
-      category,
-      score: Math.round(score),
-      growth: Math.round(growth),
+async function loadSnapshot(country: Country): Promise<TrendsSnapshot> {
+  try {
+    const categoryPoints = await fetchInterest(country, CATEGORY_TERMS[country]);
+    const keywords: KeywordTrend[] = [];
+    for (const category of ['스킨케어', '메이크업'] as Category[]) {
+      const terms = SEARCH_TERMS[country][category];
+      // Google accepts at most five comparison terms. Split each six-term list.
+      for (let start = 0; start < terms.length; start += 3) {
+        const points = await fetchInterest(country, terms.slice(start, start + 3));
+        terms.slice(start, start + 3).forEach((_, index) => {
+          if (points.some(point => point.values[index] > 0)) keywords.push({
+            country, category, keyword: KEYWORDS[category][start + index],
+            ...summarizeInterest(points, index),
+          });
+        });
+      }
+    }
+    return { country, status: 'connected', fetchedAt: new Date().toISOString(),
+      lastDate: categoryPoints.at(-1)?.date, keywords,
+      timeline: categoryPoints.map(point => ({ date: point.date, skincare: point.values[0], makeup: point.values[1] })),
     };
-  });
+  } catch (error) {
+    return { country, status: 'unavailable', fetchedAt: new Date().toISOString(),
+      error: error instanceof Error ? error.message : 'Google Trends 연결 실패', timeline: [], keywords: [],
+    };
+  }
 }
 
-import { MappedInsight, FxRate, InternalSales } from '@/types';
+export function getTrendsSnapshot(country: Country): Promise<TrendsSnapshot> {
+  const cached = snapshots.get(country);
+  if (cached && cached.expires > Date.now()) return cached.value;
+  const entry = { expires: Infinity, value: loadSnapshot(country) };
+  snapshots.set(country, entry);
+  void entry.value.then(result => { entry.expires = Date.now() + (result.status === 'connected' ? 60 * 60_000 : 5 * 60_000); });
+  return entry.value;
+}
+export async function getTrendsData(country: Country, days = 30): Promise<TrendData[]> {
+  return (await getTrendsSnapshot(country)).timeline.slice(-days);
+}
+export async function getKeywordTrends(country: Country, category: Category): Promise<KeywordTrend[]> {
+  return (await getTrendsSnapshot(country)).keywords.filter(item => item.category === category);
+}
+
+import { MappedInsight } from '@/types';
 import { getFxRates } from './fx';
 import { getInternalSales } from './sales';
 import { getAgentAnalysis } from './agent';
@@ -77,7 +97,7 @@ export async function getMappedInsights(): Promise<MappedInsight[]> {
 
     categories.forEach(category => {
       KEYWORDS[category].forEach(keyword => {
-        const trend = flatTrends.find(t => t.keyword === keyword && t.category === category);
+        const trend = flatTrends.find(t => t.keyword === keyword && t.category === category && t.country === country);
         const sale = flatSales.find(s => s.keyword === keyword && s.country === country);
 
         if (trend && sale) {
@@ -91,6 +111,7 @@ export async function getMappedInsights(): Promise<MappedInsight[]> {
             country,
             trendScore: trend.score,
             growth: trend.growth,
+            growthAvailable: trend.growthAvailable,
             fxAdjustedRevenue: sale.revenue, // already in USD
             inventoryLevel: sale.inventoryLevel,
             opportunityScore: Math.round(oppScore)

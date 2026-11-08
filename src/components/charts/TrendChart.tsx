@@ -12,6 +12,7 @@ export function TrendChart({ data, title }: TrendChartProps) {
   return (
     <div className="w-full h-[350px] flex flex-col">
       {title && <h3 className="text-xl font-black tracking-tighter text-neutral-800 mb-6">{title}</h3>}
+      {data.length === 0 && <p className="text-amber-700">Google Trends 데이터를 가져오지 못했습니다. 연결 상태를 확인하세요.</p>}
       <div className="flex-1 w-full relative min-h-0">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
