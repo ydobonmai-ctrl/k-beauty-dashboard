@@ -1,0 +1,24 @@
+name: Tests
+
+# 외부 API(Google Trends·환율·Gemini)를 흉내 낸 응답으로 데이터 처리와 LLM 출력 검증을 테스트한다.
+# 실제 네트워크·API 키 없이 돌아가므로 모든 푸시와 PR에서 실행한다.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Type check
+        run: npx tsc --noEmit
+      - name: Unit tests
+        run: node --test tests/*.test.mjs
